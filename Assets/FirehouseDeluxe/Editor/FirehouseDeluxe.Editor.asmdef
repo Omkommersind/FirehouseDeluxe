@@ -1,0 +1,7 @@
+{
+  "name": "FirehouseDeluxe.Editor",
+  "rootNamespace": "FirehouseDeluxe.Editor",
+  "references": ["FirehouseDeluxe.Runtime", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Universal.2D.Runtime", "Unity.2D.Tilemap.Editor"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

@@ -1,0 +1,6 @@
+{
+  "name": "FirehouseDeluxe.Runtime",
+  "rootNamespace": "FirehouseDeluxe",
+  "references": ["Unity.InputSystem"],
+  "autoReferenced": true
+}

@@ -1,0 +1,7 @@
+{
+  "name": "FirehouseDeluxe.Tests.Editor",
+  "rootNamespace": "FirehouseDeluxe.Tests",
+  "references": ["FirehouseDeluxe.Runtime", "FirehouseDeluxe.Editor", "Unity.InputSystem"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}
