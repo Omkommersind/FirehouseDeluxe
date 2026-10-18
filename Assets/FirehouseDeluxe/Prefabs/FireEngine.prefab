@@ -214,7 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Vehicles.TopDownVehicle
   maxForwardSpeed: 18
   maxReverseSpeed: 5
-  acceleration: 5
+  acceleration: 10
   reverseAcceleration: 3
   brakingDeceleration: 12
   rollingResistance: 0.65

@@ -13,7 +13,7 @@ namespace FirehouseDeluxe.Editor
     public static class RoadTilemapEditor
     {
         public const string ScenePath = "Assets/Scenes/RoadPlayground.unity";
-        private const string TileFolder = "Assets/FirehouseDeluxe/Tiles";
+        internal const string TileFolder = "Assets/FirehouseDeluxe/Tiles";
         private const string PaletteName = "Road Palette";
         private const string PalettePath = TileFolder + "/" + PaletteName + ".prefab";
         private const string MaterialPath = "Assets/FirehouseDeluxe/Art/VehicleUnlit.mat";
@@ -39,14 +39,17 @@ namespace FirehouseDeluxe.Editor
             Directory.CreateDirectory(TileFolder);
             AssetDatabase.Refresh();
             Sprite sprite = GetTileSprite();
-            Tile road = GetTile("Road", sprite, Color.black, Tile.ColliderType.None);
-            Tile ground = GetTile("Ground", sprite, new Color(0.25f, 0.45f, 0.25f), Tile.ColliderType.Grid);
-            GameObject palette = GetPalette(road, ground, material);
+            Tile obstacle = GetTile("Obstacle", sprite, Color.black);
+            Tile ground = GetTile("Ground", sprite, new Color(0.25f, 0.45f, 0.25f));
+            GameObject palette = GetPalette(obstacle, ground, material);
+            SolidTileRules.ApplyToProjectTiles();
 
             if (File.Exists(ScenePath))
                 EditorSceneManager.OpenScene(ScenePath);
             else
-                CreateScene(prefab, material, road, ground);
+                CreateScene(prefab, material, ground);
+
+            SolidTileRules.RefreshLoadedTilemaps();
 
             var terrain = GameObject.Find("Road Terrain");
             EditorApplication.ExecuteMenuItem("Window/2D/Tile Palette");
@@ -85,7 +88,7 @@ namespace FirehouseDeluxe.Editor
             return PixelSpriteImporter.Import(path, DrivingSceneSetup.PixelsPerUnit, false);
         }
 
-        private static Tile GetTile(string name, Sprite sprite, Color color, Tile.ColliderType colliderType)
+        private static Tile GetTile(string name, Sprite sprite, Color color)
         {
             string path = TileFolder + "/" + name + ".asset";
             var tile = AssetDatabase.LoadAssetAtPath<Tile>(path);
@@ -95,12 +98,12 @@ namespace FirehouseDeluxe.Editor
             tile.name = name;
             tile.sprite = sprite;
             tile.color = color;
-            tile.colliderType = colliderType;
+            tile.colliderType = Tile.ColliderType.Sprite;
             AssetDatabase.CreateAsset(tile, path);
             return tile;
         }
 
-        private static GameObject GetPalette(Tile road, Tile ground, Material material)
+        private static GameObject GetPalette(Tile obstacle, Tile ground, Material material)
         {
             var palette = AssetDatabase.LoadAssetAtPath<GameObject>(PalettePath);
             if (palette != null)
@@ -111,7 +114,7 @@ namespace FirehouseDeluxe.Editor
             try
             {
                 var tiles = contents.GetComponentInChildren<Tilemap>();
-                tiles.SetTile(Vector3Int.zero, road);
+                tiles.SetTile(Vector3Int.zero, obstacle);
                 tiles.SetTile(Vector3Int.right, ground);
                 tiles.GetComponent<TilemapRenderer>().sharedMaterial = material;
                 PrefabUtility.SaveAsPrefabAsset(contents, PalettePath);
@@ -125,7 +128,7 @@ namespace FirehouseDeluxe.Editor
             return AssetDatabase.LoadAssetAtPath<GameObject>(PalettePath);
         }
 
-        private static void CreateScene(GameObject truckPrefab, Material material, Tile road, Tile ground)
+        private static void CreateScene(GameObject truckPrefab, Material material, Tile ground)
         {
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var gridObject = new GameObject("Road Grid");
@@ -143,7 +146,7 @@ namespace FirehouseDeluxe.Editor
             var tiles = new TileBase[Width * Height];
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
-                    tiles[y * Width + x] = IsStarterRoad(x, y) ? road : ground;
+                    tiles[y * Width + x] = IsStarterRoad(x, y) ? null : ground;
             tilemap.SetTilesBlock(new BoundsInt(0, 0, 0, Width, Height, 1), tiles);
             tilemap.CompressBounds();
 
@@ -158,7 +161,6 @@ namespace FirehouseDeluxe.Editor
             collider.extrusionFactor = 0.001f;
             collider.ProcessTilemapChanges();
 
-            CreateWorldBounds(boundaryMaterial);
             var truck = (GameObject)PrefabUtility.InstantiatePrefab(truckPrefab, scene);
             truck.name = "FireEngine";
             truck.transform.SetPositionAndRotation(tilemap.GetCellCenterWorld(new Vector3Int(20, 9, 0)),
@@ -172,7 +174,7 @@ namespace FirehouseDeluxe.Editor
                     scenes.Add(existing);
             EditorBuildSettings.scenes = scenes.ToArray();
             AssetDatabase.SaveAssets();
-            Debug.Log("Тайловая карта готова. Road — чёрная дорога, Ground — непроезжая земля. Рисуй в Scene и сохраняй сцену Ctrl+S.");
+            Debug.Log("Тайловая карта готова. Любой нарисованный тайл — препятствие; пустая клетка — дорога. Стирай ластиком, чтобы сделать проезд. Сохраняй сцену Ctrl+S.");
         }
 
         private static bool IsStarterRoad(int x, int y)
@@ -198,27 +200,5 @@ namespace FirehouseDeluxe.Editor
             return material;
         }
 
-        private static void CreateWorldBounds(PhysicsMaterial2D material)
-        {
-            var bounds = new GameObject("World Bounds");
-            float halfWidth = Width * CellSize * 0.5f;
-            float halfHeight = Height * CellSize * 0.5f;
-            AddWall(bounds, new Vector2(0f, -halfHeight - CellSize * 0.5f),
-                new Vector2(Width * CellSize + CellSize * 2f, CellSize), material);
-            AddWall(bounds, new Vector2(0f, halfHeight + CellSize * 0.5f),
-                new Vector2(Width * CellSize + CellSize * 2f, CellSize), material);
-            AddWall(bounds, new Vector2(-halfWidth - CellSize * 0.5f, 0f),
-                new Vector2(CellSize, Height * CellSize), material);
-            AddWall(bounds, new Vector2(halfWidth + CellSize * 0.5f, 0f),
-                new Vector2(CellSize, Height * CellSize), material);
-        }
-
-        private static void AddWall(GameObject owner, Vector2 offset, Vector2 size, PhysicsMaterial2D material)
-        {
-            var collider = owner.AddComponent<BoxCollider2D>();
-            collider.offset = offset;
-            collider.size = size;
-            collider.sharedMaterial = material;
-        }
     }
 }
