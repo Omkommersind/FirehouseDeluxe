@@ -28,6 +28,7 @@ namespace FirehouseDeluxe.Editor
 
         public static void RefreshLoadedTilemaps()
         {
+            bool rebuiltCollider = false;
             foreach (var tilemap in UnityEngine.Object.FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
             {
                 if (EditorUtility.IsPersistent(tilemap) || !tilemap.gameObject.scene.isLoaded
@@ -36,21 +37,33 @@ namespace FirehouseDeluxe.Editor
 
                 tilemap.RefreshAllTiles();
                 var collider = tilemap.GetComponent<TilemapCollider2D>();
-                if (collider != null && collider.hasTilemapChanges)
+                if (collider == null || !collider.enabled)
+                    continue;
+
+                // A sprite physics-shape import does not always register as a tile change.
+                // Restarting the enabled collider discards its cached geometry immediately.
+                collider.enabled = false;
+                collider.enabled = true;
+                if (collider.hasTilemapChanges)
                     collider.ProcessTilemapChanges();
+                rebuiltCollider = true;
             }
+
+            if (rebuiltCollider)
+                Physics2D.SyncTransforms();
         }
     }
 
     // Apply the same rule to tiles dragged into the palette later, without an extra user step.
     internal sealed class SolidTilePostprocessor : AssetPostprocessor
     {
+        private const string EnvironmentArtFolder = "Assets/FirehouseDeluxe/Art/Environment/";
         private static bool refreshQueued;
 
         private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved,
             string[] movedFrom, bool didDomainReload)
         {
-            if (!didDomainReload && !ContainsTileAsset(imported) && !ContainsTileAsset(moved))
+            if (!didDomainReload && !ContainsColliderSource(imported) && !ContainsColliderSource(moved))
                 return;
             if (refreshQueued)
                 return;
@@ -59,11 +72,13 @@ namespace FirehouseDeluxe.Editor
             EditorApplication.delayCall += ApplyRules;
         }
 
-        private static bool ContainsTileAsset(string[] paths)
+        private static bool ContainsColliderSource(string[] paths)
         {
             foreach (string path in paths)
-                if (path.StartsWith(RoadTilemapEditor.TileFolder + "/", StringComparison.Ordinal)
-                    && path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+                if ((path.StartsWith(RoadTilemapEditor.TileFolder + "/", StringComparison.Ordinal)
+                        && path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+                    || (path.StartsWith(EnvironmentArtFolder, StringComparison.Ordinal)
+                        && path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)))
                     return true;
             return false;
         }
