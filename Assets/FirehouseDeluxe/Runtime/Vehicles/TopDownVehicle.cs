@@ -16,6 +16,15 @@ namespace FirehouseDeluxe.Vehicles
         [SerializeField, Min(0f)] private float rollingResistance = 0.65f;
         [SerializeField, Min(0f)] private float aerodynamicDrag = 0.008f;
 
+        [Header("Fuel")]
+        [SerializeField, Min(0.1f)] private float fuelCapacity = 100f;
+        [SerializeField, Min(0f), Tooltip("Fuel consumed per second at full throttle.")]
+        private float fuelConsumptionPerSecond = 1f;
+        [SerializeField, Min(0.1f), Tooltip("Maximum speed while pushing the vehicle with an empty tank.")]
+        private float emptyFuelPushSpeed = 1.2f;
+        [SerializeField, Min(0.1f), Tooltip("Acceleration while pushing the vehicle with an empty tank.")]
+        private float emptyFuelPushAcceleration = 0.75f;
+
         [Header("Steering")]
         [SerializeField, Min(0.1f), Tooltip("Distance between the axles, in world units.")]
         private float wheelbase = 3.2f;
@@ -36,10 +45,15 @@ namespace FirehouseDeluxe.Vehicles
         private float throttle;
         private float steering;
         private float currentSteerAngle;
+        private float fuel;
         private bool handbrake;
 
         public float SpeedKph => body == null ? 0f : body.linearVelocity.magnitude * 3.6f;
         public float ForwardSpeed => body == null ? 0f : Vector2.Dot(body.linearVelocity, Forward);
+        public float Fuel => fuel;
+        public float FuelCapacity => fuelCapacity;
+        public float FuelNormalized => fuelCapacity <= 0f ? 0f : fuel / fuelCapacity;
+        public bool HasFuel => fuel > 0f;
 
         // Use the physics pose rather than the interpolated render transform.
         private Vector2 Forward => new Vector2(-Mathf.Sin(body.rotation * Mathf.Deg2Rad),
@@ -53,6 +67,7 @@ namespace FirehouseDeluxe.Vehicles
             body.angularDamping = 0f;
             spawnPosition = body.position;
             spawnRotation = body.rotation;
+            RefillFuel();
         }
 
         /// <summary>Positive throttle drives forwards; positive steering turns the wheels right.</summary>
@@ -80,11 +95,25 @@ namespace FirehouseDeluxe.Vehicles
                 // The opposite pedal brakes to a stop first. Reverse starts on a later physics tick.
                 bool braking = (throttle > 0f && forwardSpeed < 0f)
                     || (throttle < 0f && forwardSpeed > 0f);
-                float target = throttle > 0f ? maxForwardSpeed * throttle : maxReverseSpeed * throttle;
-                float rate = braking ? brakingDeceleration
-                    : throttle > 0f ? acceleration : reverseAcceleration;
-                forwardSpeed = Mathf.MoveTowards(forwardSpeed, braking ? 0f : target,
-                    rate * Mathf.Abs(throttle) * dt);
+                if (braking)
+                {
+                    forwardSpeed = Mathf.MoveTowards(forwardSpeed, 0f,
+                        brakingDeceleration * Mathf.Abs(throttle) * dt);
+                }
+                else if (HasFuel)
+                {
+                    float target = throttle > 0f ? maxForwardSpeed * throttle : maxReverseSpeed * throttle;
+                    float rate = throttle > 0f ? acceleration : reverseAcceleration;
+                    forwardSpeed = Mathf.MoveTowards(forwardSpeed, target,
+                        rate * Mathf.Abs(throttle) * dt);
+                    ConsumeFuel(Mathf.Abs(throttle) * fuelConsumptionPerSecond * dt);
+                }
+                else
+                {
+                    float target = emptyFuelPushSpeed * Mathf.Sign(throttle);
+                    forwardSpeed = Mathf.MoveTowards(forwardSpeed, target,
+                        emptyFuelPushAcceleration * Mathf.Abs(throttle) * dt);
+                }
             }
 
             float resistance = rollingResistance + aerodynamicDrag * forwardSpeed * forwardSpeed;
@@ -114,7 +143,23 @@ namespace FirehouseDeluxe.Vehicles
             body.position = spawnPosition;
             body.rotation = spawnRotation;
             currentSteerAngle = 0f;
+            RefillFuel();
             SetDriveInput(0f, 0f, false);
+        }
+
+        public void AddFuel(float amount)
+        {
+            fuel = Mathf.Clamp(fuel + Mathf.Max(0f, amount), 0f, fuelCapacity);
+        }
+
+        public void RefillFuel()
+        {
+            fuel = fuelCapacity;
+        }
+
+        private void ConsumeFuel(float amount)
+        {
+            fuel = Mathf.Max(0f, fuel - amount);
         }
 
         private void OnDisable()
