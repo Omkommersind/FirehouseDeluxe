@@ -215,7 +215,7 @@ namespace FirehouseDeluxe.Tests
         }
 
         [Test]
-        public void PlaygroundHasValidPrefabCameraAndVisibleSprite()
+        public void PlaygroundHasCameraAnchorAndVisibleVehicleSprite()
         {
             var scene = EditorSceneManager.OpenScene(RoadTilemapEditor.ScenePath);
             var motor = Object.FindFirstObjectByType<TopDownVehicle>();
@@ -226,9 +226,15 @@ namespace FirehouseDeluxe.Tests
             Assert.That(sprite.sharedMaterial.shader.name,
                 Is.EqualTo("Universal Render Pipeline/2D/Sprite-Unlit-Default"));
             Assert.That(motor.GetComponent<Rigidbody2D>().gravityScale, Is.Zero);
-            Assert.That(Camera.main.orthographic, Is.True);
-            Assert.That(Camera.main.backgroundColor, Is.EqualTo(Color.black));
-            Assert.That(Camera.main.GetComponent<VehicleFollowCamera>().Target, Is.EqualTo(motor.transform));
+            var anchor = Object.FindFirstObjectByType<SceneCameraAnchor>();
+            Assert.That(anchor, Is.Not.Null);
+            Assert.That(anchor.GetComponent<Camera>(), Is.Null);
+            Assert.That(anchor.GetComponent<VehicleFollowCamera>().Target, Is.EqualTo(motor.transform));
+            var cameraPrefab = Resources.Load<GameObject>(PersistentGameCamera.ResourceName);
+            Assert.That(cameraPrefab, Is.Not.Null);
+            Assert.That(cameraPrefab.GetComponent<PersistentGameCamera>(), Is.Not.Null);
+            Assert.That(cameraPrefab.GetComponent<Camera>().orthographic, Is.True);
+            Assert.That(cameraPrefab.GetComponent<Camera>().backgroundColor, Is.EqualTo(Color.black));
             Assert.That(scene.isLoaded, Is.True);
         }
     }

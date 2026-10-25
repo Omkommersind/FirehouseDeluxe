@@ -4,7 +4,6 @@ using UnityEngine.Tilemaps;
 namespace FirehouseDeluxe
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(Camera))]
     public sealed class VehicleFollowCamera : MonoBehaviour
     {
         [SerializeField] private Transform target;
@@ -21,9 +20,14 @@ namespace FirehouseDeluxe
         public Transform Target { get => target; set => target = value; }
         public Renderer MapBounds { get => mapBounds; set => mapBounds = value; }
 
+        public void SetCamera(Camera camera)
+        {
+            followCamera = camera;
+            velocity = Vector3.zero;
+        }
+
         private void Awake()
         {
-            followCamera = GetComponent<Camera>();
             var tilemap = mapBounds != null ? mapBounds.GetComponent<Tilemap>() : null;
             if (tilemap != null)
             {
@@ -43,15 +47,15 @@ namespace FirehouseDeluxe
 
         private void LateUpdate()
         {
-            if (target == null)
+            if (target == null || followCamera == null)
                 return;
 
-            Vector3 position = transform.position;
+            Vector3 position = followCamera.transform.position;
             Vector3 targetPosition = new Vector3(target.position.x, target.position.y, position.z);
             Vector3 centeredPosition = ConstrainToMap(targetPosition);
             if (Vector3.Distance(position, centeredPosition) > snapDistance)
             {
-                transform.position = centeredPosition;
+                followCamera.transform.position = centeredPosition;
                 velocity = Vector3.zero;
                 return;
             }
@@ -68,7 +72,7 @@ namespace FirehouseDeluxe
                 velocity.y = 0f;
 
             // Follow position only: screen north stays fixed while the truck rotates.
-            transform.position = ConstrainToMap(Vector3.SmoothDamp(position, destination,
+            followCamera.transform.position = ConstrainToMap(Vector3.SmoothDamp(position, destination,
                 ref velocity, smoothTime, Mathf.Infinity, Time.deltaTime));
         }
 
@@ -91,9 +95,19 @@ namespace FirehouseDeluxe
 
         private void OnDrawGizmosSelected()
         {
-            Camera camera = GetComponent<Camera>();
+            Camera camera = followCamera;
+            if (camera == null)
+            {
+                var prefab = Resources.Load<GameObject>(PersistentGameCamera.ResourceName);
+                if (prefab != null)
+                    camera = prefab.GetComponent<Camera>();
+            }
+            if (camera == null)
+                return;
+
             Vector2 halfDeadZone = GetDeadZoneHalfSize(camera);
-            Vector3 center = new Vector3(transform.position.x, transform.position.y,
+            Vector3 position = followCamera != null ? followCamera.transform.position : transform.position;
+            Vector3 center = new Vector3(position.x, position.y,
                 target != null ? target.position.z : 0f);
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireCube(center, new Vector3(halfDeadZone.x * 2f, halfDeadZone.y * 2f, 0f));
