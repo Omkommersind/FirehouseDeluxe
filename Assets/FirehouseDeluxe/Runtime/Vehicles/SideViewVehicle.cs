@@ -16,6 +16,9 @@ namespace FirehouseDeluxe.Vehicles
         private Rigidbody2D body;
         private float moveInput;
 
+        public float HorizontalSpeed => body != null ? body.linearVelocity.x : 0f;
+        public bool HasMoveInput => !Mathf.Approximately(moveInput, 0f);
+
         private void Awake()
         {
             body = GetComponent<Rigidbody2D>();
