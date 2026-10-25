@@ -9,6 +9,8 @@ namespace FirehouseDeluxe.Editor
     {
         public const int PixelsPerUnit = 4;
         public const string VehiclePrefabPath = "Assets/FirehouseDeluxe/Prefabs/FireEngine.prefab";
+        private const int ReferenceWidth = 256;
+        private const int ReferenceHeight = 240;
 
         public static void CreateCameraAndHud(TopDownVehicle vehicle, Renderer mapBounds)
         {
@@ -17,7 +19,7 @@ namespace FirehouseDeluxe.Editor
             cameraObject.transform.position = vehicle.transform.position + new Vector3(0f, 0f, -10f);
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = mapBounds != null ? 22.5f : 12f;
+            camera.orthographicSize = ReferenceHeight / (2f * PixelsPerUnit);
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = Color.black;
             camera.allowHDR = false;
@@ -33,8 +35,9 @@ namespace FirehouseDeluxe.Editor
             {
                 var pixelCamera = cameraObject.AddComponent<PixelPerfectCamera>();
                 pixelCamera.assetsPPU = PixelsPerUnit;
-                pixelCamera.refResolutionX = 320;
-                pixelCamera.refResolutionY = 180;
+                pixelCamera.refResolutionX = ReferenceWidth;
+                pixelCamera.refResolutionY = ReferenceHeight;
+                pixelCamera.cropFrame = PixelPerfectCamera.CropFrame.Windowbox;
                 pixelCamera.gridSnapping = PixelPerfectCamera.GridSnapping.PixelSnapping;
                 var pixelSettings = new SerializedObject(pixelCamera);
                 pixelSettings.FindProperty("m_FilterMode").enumValueIndex =
