@@ -9,6 +9,8 @@ namespace FirehouseDeluxe.Rescue
     {
         [SerializeField] private Sprite idleSprite;
         [SerializeField] private Sprite stressSprite;
+        [SerializeField, Min(1), Tooltip("Size in pixels of the head square at the top of the idle sprite.")]
+        private int headSizePixels = 64;
         [SerializeField, Min(0.1f)] private float descentSpeed = 8f;
         [SerializeField, Min(0.1f)] private float fallAcceleration = 35f;
 
@@ -17,6 +19,7 @@ namespace FirehouseDeluxe.Rescue
         private Rigidbody2D body;
         private BoxCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
+        private Sprite waitingHeadSprite;
         private RescueLadder ladder;
         private Vector2 fallVelocity;
         private float despawnY;
@@ -29,6 +32,25 @@ namespace FirehouseDeluxe.Rescue
             hitbox = GetComponent<BoxCollider2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             spriteRenderer.sprite = idleSprite;
+            ShowWaitingHead();
+        }
+
+        private void ShowWaitingHead()
+        {
+            if (idleSprite == null)
+                return;
+
+            Rect source = idleSprite.rect;
+            float size = Mathf.Min(headSizePixels, source.width, source.height);
+            var headRect = new Rect(source.x + Mathf.Floor((source.width - size) * 0.5f),
+                source.yMax - size, size, size);
+            // Reuse the original texture and place the bottom of the head on the sill.
+            waitingHeadSprite = Sprite.Create(idleSprite.texture, headRect,
+                new Vector2(0.5f, 0f), idleSprite.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+            waitingHeadSprite.name = idleSprite.name + " Head";
+            spriteRenderer.sprite = waitingHeadSprite;
+            hitbox.size = Vector2.one * (size / idleSprite.pixelsPerUnit);
+            hitbox.offset = Vector2.up * (hitbox.size.y * 0.5f);
         }
 
         public void Initialize(float fallDespawnY) => despawnY = fallDespawnY;
@@ -40,6 +62,7 @@ namespace FirehouseDeluxe.Rescue
 
             ladder = rescueLadder;
             state = State.Descending;
+            spriteRenderer.sprite = idleSprite;
             // The passenger remains independent of the vehicle so falling never follows the truck.
             hitbox.enabled = false;
             body.position = ladder.TopPosition;
@@ -85,6 +108,12 @@ namespace FirehouseDeluxe.Rescue
             gameObject.SetActive(false);
             Finished?.Invoke(this, rescued);
             Destroy(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (waitingHeadSprite != null)
+                Destroy(waitingHeadSprite);
         }
     }
 }

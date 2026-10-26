@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FirehouseDeluxe.Rescue
@@ -12,8 +13,7 @@ namespace FirehouseDeluxe.Rescue
         [SerializeField, Tooltip("Remove a falling person when their feet reach this world Y coordinate.")]
         private float fallDespawnY = -22.5f;
 
-        private RescuePerson activePerson;
-        private int previousWindow = -1;
+        private readonly Dictionary<RescuePerson, int> activePeople = new Dictionary<RescuePerson, int>();
 
         public int SavedCount { get; private set; }
         public int RescueTarget { get; private set; }
@@ -30,7 +30,7 @@ namespace FirehouseDeluxe.Rescue
             }
 
             RescueTarget = initialRescueTarget;
-            SpawnNextPerson();
+            FillAvailablePlaces();
         }
 
         private bool HasValidSetup()
@@ -48,33 +48,43 @@ namespace FirehouseDeluxe.Rescue
             return true;
         }
 
-        private void SpawnNextPerson()
+        private void FillAvailablePlaces(int excludedWindow = -1)
         {
-            // Skipping the previous index keeps all other windows equally likely.
-            int next = UnityEngine.Random.Range(0, windows.Length - (previousWindow >= 0 ? 1 : 0));
-            if (previousWindow >= 0 && next >= previousWindow)
-                next++;
-            previousWindow = next;
+            // Never spawn more passengers than still need rescuing.
+            int desiredCount = Mathf.Min(2, RescueTarget - SavedCount);
+            while (activePeople.Count < desiredCount)
+                SpawnNextPerson(excludedWindow);
+        }
 
-            activePerson = Instantiate(personPrefab, windows[next].SpawnPosition, Quaternion.identity, transform);
-            activePerson.Initialize(fallDespawnY);
-            activePerson.Finished += OnPersonFinished;
+        private void SpawnNextPerson(int excludedWindow)
+        {
+            var availableWindows = new List<int>(windows.Length);
+            for (int index = 0; index < windows.Length; index++)
+                if (index != excludedWindow && !activePeople.ContainsValue(index))
+                    availableWindows.Add(index);
+
+            int next = availableWindows[UnityEngine.Random.Range(0, availableWindows.Count)];
+
+            RescuePerson person = Instantiate(personPrefab, windows[next].SpawnPosition, Quaternion.identity, transform);
+            person.Initialize(fallDespawnY);
+            activePeople.Add(person, next);
+            person.Finished += OnPersonFinished;
         }
 
         private void OnPersonFinished(RescuePerson person, bool rescued)
         {
-            if (person != activePerson)
+            if (!activePeople.TryGetValue(person, out int windowIndex))
                 return;
 
             Unsubscribe(person);
-            activePerson = null;
+            activePeople.Remove(person);
             if (rescued)
                 SavedCount++;
 
             if (IsComplete)
                 Completed?.Invoke();
             else
-                SpawnNextPerson();
+                FillAvailablePlaces(rescued ? -1 : windowIndex);
         }
 
         private void Unsubscribe(RescuePerson person)
@@ -84,8 +94,10 @@ namespace FirehouseDeluxe.Rescue
 
         private void OnDestroy()
         {
-            if (activePerson != null)
-                Unsubscribe(activePerson);
+            foreach (RescuePerson person in activePeople.Keys)
+                if (person != null)
+                    Unsubscribe(person);
+            activePeople.Clear();
         }
 
         private void OnDrawGizmosSelected()

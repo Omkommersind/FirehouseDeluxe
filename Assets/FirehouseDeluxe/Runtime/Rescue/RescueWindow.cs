@@ -6,7 +6,7 @@ namespace FirehouseDeluxe.Rescue
     [RequireComponent(typeof(BoxCollider2D))]
     public sealed class RescueWindow : MonoBehaviour
     {
-        // The bottom centre places the character's feet on the window sill.
+        // The bottom centre places the waiting head on the window sill.
         public Vector3 SpawnPosition
         {
             get

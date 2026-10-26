@@ -181,5 +181,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Rescue.RescuePerson
   idleSprite: {fileID: 21300000, guid: 86c003f085fafe64a819cf607454c0cb, type: 3}
   stressSprite: {fileID: 21300000, guid: b19c811d08e33884ca5ec71671de5569, type: 3}
+  headSizePixels: 64
   descentSpeed: 8
   fallAcceleration: 35
