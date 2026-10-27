@@ -17,7 +17,8 @@ namespace FirehouseDeluxe
         private Tilemap points;
         private MissionPointMarker marker;
         private int currentStep;
-        private bool advancePending;
+        private bool launchPending;
+        private bool missionActive;
 
         public IReadOnlyList<Vector3Int> Route => route;
         public int CompletedCount => currentStep;
@@ -57,15 +58,22 @@ namespace FirehouseDeluxe
 
         private void FixedUpdate()
         {
-            if (!advancePending)
+            if (!launchPending)
                 return;
 
-            advancePending = false;
-            currentStep++;
+            launchPending = false;
+            WindowRescueMission.Launch(this);
+        }
+
+        internal void FinishCurrentMission(bool completed)
+        {
+            missionActive = false;
+            if (completed)
+                currentStep++;
             if (IsComplete)
             {
                 marker.gameObject.SetActive(false);
-                Debug.Log("Маршрут завершён: все точки посещены.", this);
+                Debug.Log("Маршрут завершён: все задания выполнены.", this);
                 return;
             }
             ShowCurrentPoint(true);
@@ -73,13 +81,14 @@ namespace FirehouseDeluxe
 
         internal void ReachCurrentPoint()
         {
-            if (advancePending || IsComplete || !isActiveAndEnabled)
+            if (missionActive || IsComplete || !isActiveAndEnabled)
                 return;
 
-            advancePending = true;
+            missionActive = true;
+            // Launch outside the trigger callback so suspending the map is safe for physics.
+            launchPending = true;
             marker.gameObject.SetActive(false);
-            Debug.Log($"Точка {currentStep + 1}/{route.Count} достигнута. TODO: запуск миниигры. Пока переходим к следующей точке.", this);
-            // TODO: start the minigame here and advance only after its completion.
+            Debug.Log($"Точка {currentStep + 1}/{route.Count}: спасение из окон.", this);
         }
 
         private void ShowCurrentPoint(bool requireClearArea)
@@ -101,7 +110,7 @@ namespace FirehouseDeluxe
 
         private void OnEnable()
         {
-            if (marker != null && !IsComplete && !advancePending)
+            if (marker != null && !IsComplete && !missionActive)
                 marker.gameObject.SetActive(true);
         }
     }

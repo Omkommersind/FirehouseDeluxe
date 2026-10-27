@@ -1,45 +1,75 @@
 using FirehouseDeluxe.Vehicles;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace FirehouseDeluxe
 {
     public sealed class DrivingPrototypeHud : MonoBehaviour
     {
         [SerializeField] private TopDownVehicle vehicle;
-        private GUIStyle headingStyle;
-        private GUIStyle textStyle;
-        private GUIStyle emptyFuelStyle;
+        [SerializeField] private FuelGaugeSettings fuelGauge;
+        private Camera hudCamera;
+        private PixelPerfectCamera pixelPerfectCamera;
 
         public TopDownVehicle Vehicle { get => vehicle; set => vehicle = value; }
+
+        private void Awake()
+        {
+            if (fuelGauge == null)
+                fuelGauge = Resources.Load<FuelGaugeSettings>("FuelGaugeSettings");
+            hudCamera = Camera.main;
+            if (hudCamera != null)
+                pixelPerfectCamera = hudCamera.GetComponent<PixelPerfectCamera>();
+        }
 
         private void OnGUI()
         {
             if (vehicle == null)
                 return;
 
-            if (textStyle == null)
+            DrawFuelGauge();
+        }
+
+        private void DrawFuelGauge()
+        {
+            if (Event.current.type != EventType.Repaint || fuelGauge == null || fuelGauge.Icon == null
+                || hudCamera == null || pixelPerfectCamera == null)
+                return;
+
+            // Use the camera's real viewport and integer zoom, including its black margins.
+            int pixelSize = Mathf.Max(1, pixelPerfectCamera.pixelRatio);
+            Rect viewport = hudCamera.pixelRect;
+            Matrix4x4 previousMatrix = GUI.matrix;
+            Color previousColor = GUI.color;
+            GUI.matrix = Matrix4x4.identity;
+            GUI.BeginGroup(new Rect(Mathf.Round(viewport.x), Mathf.Round(Screen.height - viewport.yMax),
+                Mathf.Round(viewport.width), Mathf.Round(viewport.height)));
+
+            Vector2Int position = fuelGauge.Position;
+            Texture2D icon = fuelGauge.Icon;
+            GUI.color = Color.white;
+            GUI.DrawTexture(new Rect(position.x * pixelSize, position.y * pixelSize,
+                icon.width * pixelSize, icon.height * pixelSize), icon);
+
+            Vector2Int barSize = fuelGauge.BarSize;
+            int barX = position.x + icon.width + fuelGauge.Gap;
+            int barY = position.y + (icon.height - barSize.y) / 2;
+            var barRect = new Rect(barX * pixelSize, barY * pixelSize,
+                barSize.x * pixelSize, barSize.y * pixelSize);
+            GUI.color = fuelGauge.EmptyColor;
+            GUI.DrawTexture(barRect, Texture2D.whiteTexture);
+
+            // Keep a final pixel while fuel remains; zero fuel leaves the bar completely empty.
+            int filledPixels = Mathf.CeilToInt(Mathf.Clamp01(vehicle.FuelNormalized) * barSize.x);
+            if (filledPixels > 0)
             {
-                textStyle = new GUIStyle(GUI.skin.label) { fontSize = 17 };
-                textStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
-                headingStyle = new GUIStyle(textStyle) { fontSize = 23, fontStyle = FontStyle.Bold };
-                emptyFuelStyle = new GUIStyle(textStyle);
-                emptyFuelStyle.normal.textColor = new Color(1f, 0.35f, 0.25f);
+                barRect.width = filledPixels * pixelSize;
+                GUI.color = fuelGauge.FillColor;
+                GUI.DrawTexture(barRect, Texture2D.whiteTexture);
             }
 
-            Matrix4x4 previousMatrix = GUI.matrix;
-            float scale = Mathf.Clamp(Screen.height / 720f, 0.6f, 2f);
-            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-            float width = Screen.width / scale;
-            GUI.Label(new Rect(20f, 16f, width - 40f, 34f),
-                $"{vehicle.SpeedKph:0} km/h   {(vehicle.ForwardSpeed < -0.1f ? "R" : "D")}", headingStyle);
-            Vector3 position = vehicle.transform.position;
-            GUI.Label(new Rect(20f, 52f, width - 40f, 28f),
-                $"X {position.x:0.0} m   Y {position.y:0.0} m", textStyle);
-            string fuelText = vehicle.HasFuel
-                ? $"Fuel {vehicle.FuelNormalized * 100f:0}%"
-                : "Fuel empty — push mode";
-            GUI.Label(new Rect(20f, 80f, width - 40f, 28f), fuelText,
-                vehicle.HasFuel ? textStyle : emptyFuelStyle);
+            GUI.EndGroup();
+            GUI.color = previousColor;
             GUI.matrix = previousMatrix;
         }
     }

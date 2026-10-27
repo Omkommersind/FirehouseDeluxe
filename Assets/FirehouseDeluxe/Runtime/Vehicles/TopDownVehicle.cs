@@ -138,12 +138,17 @@ namespace FirehouseDeluxe.Vehicles
 
         public void ResetToSpawn()
         {
-            body.linearVelocity = Vector2.zero;
-            body.angularVelocity = 0f;
+            Stop();
             body.position = spawnPosition;
             body.rotation = spawnRotation;
-            currentSteerAngle = 0f;
             RefillFuel();
+        }
+
+        public void Stop()
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            currentSteerAngle = 0f;
             SetDriveInput(0f, 0f, false);
         }
 
