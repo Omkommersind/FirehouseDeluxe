@@ -9,27 +9,26 @@ namespace FirehouseDeluxe
     public sealed class MissionRoute : MonoBehaviour
     {
         [SerializeField] private List<Vector3Int> route = new List<Vector3Int>();
-        [SerializeField, Range(0.1f, 1f)] private float opacity = 0.65f;
-        [SerializeField, Min(0f)] private float rainbowSpeed = 0.35f;
-        [SerializeField, Range(0f, 0.5f)] private float pulseAmount = 0.15f;
-        [SerializeField, Min(0f)] private float pulseSpeed = 1f;
+        [SerializeField, Min(0f), Tooltip("Full on/off cycles per second. Zero keeps the marker visible.")]
+        private float blinkFrequency = 1f;
 
         private Tilemap points;
         private MissionPointMarker marker;
         private int currentStep;
         private bool launchPending;
         private bool missionActive;
+        private double runStartedAt;
 
         public IReadOnlyList<Vector3Int> Route => route;
         public int CompletedCount => currentStep;
+        public double ElapsedSeconds => GetElapsedTime(Time.realtimeSinceStartupAsDouble);
         public bool IsComplete => currentStep >= route.Count;
-        public float Opacity => opacity;
-        public float RainbowSpeed => rainbowSpeed;
-        public float PulseAmount => pulseAmount;
-        public float PulseSpeed => pulseSpeed;
+        internal bool IsLastMission => currentStep == route.Count - 1;
+        public float BlinkFrequency => blinkFrequency;
 
         private void Awake()
         {
+            runStartedAt = Time.realtimeSinceStartupAsDouble;
             points = GetComponent<Tilemap>();
             var sourceRenderer = GetComponent<TilemapRenderer>();
             sourceRenderer.enabled = false;
@@ -78,6 +77,8 @@ namespace FirehouseDeluxe
             }
             ShowCurrentPoint(true);
         }
+
+        internal double GetElapsedTime(double completedAt) => completedAt - runStartedAt;
 
         internal void ReachCurrentPoint()
         {

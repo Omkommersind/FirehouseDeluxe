@@ -105,10 +105,7 @@ namespace FirehouseDeluxe.Editor
                     TextureFormat.RGBA32, false);
                 for (int y = 0; y < texture.height; y++)
                     for (int x = 0; x < texture.width; x++)
-                    {
-                        bool edge = x == 0 || y == 0 || x == texture.width - 1 || y == texture.height - 1;
-                        texture.SetPixel(x, y, new Color(0.85f, 0.3f, 1f, edge ? 1f : 0.25f));
-                    }
+                        texture.SetPixel(x, y, MissionPointMarker.MarkerColor);
                 texture.Apply();
                 File.WriteAllBytes(spritePath, texture.EncodeToPNG());
                 DestroyImmediate(texture);
@@ -174,10 +171,8 @@ namespace FirehouseDeluxe.Editor
             }
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Внешний вид активной точки", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("opacity"), new GUIContent("Прозрачность (1 — непрозрачно)"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("rainbowSpeed"), new GUIContent("Скорость радуги"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pulseAmount"), new GUIContent("Сила пульсации"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pulseSpeed"), new GUIContent("Частота пульсации"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("blinkFrequency"),
+                new GUIContent("Частота мигания (Гц)", "Полных циклов в секунду. 0 — постоянно виден."));
             serializedObject.ApplyModifiedProperties();
 
             if (Application.isPlaying)

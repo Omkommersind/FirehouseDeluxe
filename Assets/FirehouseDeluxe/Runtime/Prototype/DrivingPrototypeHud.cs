@@ -8,8 +8,11 @@ namespace FirehouseDeluxe
     {
         [SerializeField] private TopDownVehicle vehicle;
         [SerializeField] private FuelGaugeSettings fuelGauge;
+        [SerializeField] private MissionRoute missionRoute;
         private Camera hudCamera;
         private PixelPerfectCamera pixelPerfectCamera;
+        private Texture2D timerTexture;
+        private long displayedSecond = -1;
 
         public TopDownVehicle Vehicle { get => vehicle; set => vehicle = value; }
 
@@ -22,17 +25,44 @@ namespace FirehouseDeluxe
                 pixelPerfectCamera = hudCamera.GetComponent<PixelPerfectCamera>();
         }
 
-        private void OnGUI()
+        private void Start()
         {
-            if (vehicle == null)
-                return;
+            if (missionRoute == null)
+            {
+                foreach (GameObject root in gameObject.scene.GetRootGameObjects())
+                {
+                    missionRoute = root.GetComponentInChildren<MissionRoute>();
+                    if (missionRoute != null)
+                        break;
+                }
+            }
 
-            DrawFuelGauge();
+            RefreshTimer();
         }
 
-        private void DrawFuelGauge()
+        private void OnEnable() => RefreshTimer();
+
+        private void Update() => RefreshTimer();
+
+        private void RefreshTimer()
         {
-            if (Event.current.type != EventType.Repaint || fuelGauge == null || fuelGauge.Icon == null
+            if (missionRoute == null)
+                return;
+
+            long second = (long)System.Math.Max(0d, missionRoute.ElapsedSeconds);
+            if (second == displayedSecond && timerTexture != null)
+                return;
+
+            displayedSecond = second;
+            if (timerTexture != null)
+                Destroy(timerTexture);
+            timerTexture = PixelFont.CreateCenteredText(RunTimeFormatter.Format(second));
+        }
+
+        private void OnGUI()
+        {
+            if (Event.current.type != EventType.Repaint || vehicle == null
+                || fuelGauge == null || fuelGauge.Icon == null
                 || hudCamera == null || pixelPerfectCamera == null)
                 return;
 
@@ -45,6 +75,16 @@ namespace FirehouseDeluxe
             GUI.BeginGroup(new Rect(Mathf.Round(viewport.x), Mathf.Round(Screen.height - viewport.yMax),
                 Mathf.Round(viewport.width), Mathf.Round(viewport.height)));
 
+            DrawFuelGauge(pixelSize);
+            DrawTimer(pixelSize, Mathf.FloorToInt(viewport.width / pixelSize));
+
+            GUI.EndGroup();
+            GUI.color = previousColor;
+            GUI.matrix = previousMatrix;
+        }
+
+        private void DrawFuelGauge(int pixelSize)
+        {
             Vector2Int position = fuelGauge.Position;
             Texture2D icon = fuelGauge.Icon;
             GUI.color = Color.white;
@@ -67,10 +107,26 @@ namespace FirehouseDeluxe
                 GUI.color = fuelGauge.FillColor;
                 GUI.DrawTexture(barRect, Texture2D.whiteTexture);
             }
+        }
 
-            GUI.EndGroup();
-            GUI.color = previousColor;
-            GUI.matrix = previousMatrix;
+        private void DrawTimer(int pixelSize, int viewportWidth)
+        {
+            if (timerTexture == null)
+                return;
+
+            Vector2Int margin = fuelGauge.Position;
+            var rect = new Rect((viewportWidth - margin.x - timerTexture.width) * pixelSize,
+                margin.y * pixelSize, timerTexture.width * pixelSize, timerTexture.height * pixelSize);
+            GUI.color = Color.black;
+            GUI.DrawTexture(rect, Texture2D.whiteTexture);
+            GUI.color = fuelGauge.FillColor;
+            GUI.DrawTexture(rect, timerTexture);
+        }
+
+        private void OnDestroy()
+        {
+            if (timerTexture != null)
+                Destroy(timerTexture);
         }
     }
 }

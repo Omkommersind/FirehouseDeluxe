@@ -15,6 +15,7 @@ namespace FirehouseDeluxe
         private const string ScenePath = "Assets/Scenes/WindowRescue.unity";
         private WindowRescueRound round;
         private bool completed;
+        private double completedAt;
 
         internal static void Launch(MissionRoute route)
         {
@@ -75,6 +76,13 @@ namespace FirehouseDeluxe
                         round.Completed -= OnRoundCompleted;
                 }
 
+                if (completed && route.IsLastMission && GameEnding.TryShow(route.GetElapsedTime(completedAt)))
+                {
+                    route.FinishCurrentMission(true);
+                    // Single-mode loading removes both the suspended map and the rescue scene.
+                    yield break;
+                }
+
                 if (!completed)
                     Debug.LogError("WindowRescue не завершена: проверь активный WindowRescueRound, prefab персонажа и ссылки на окна.", route);
                 yield return SceneManager.UnloadSceneAsync(rescue);
@@ -122,7 +130,11 @@ namespace FirehouseDeluxe
             return null;
         }
 
-        private void OnRoundCompleted() => completed = true;
+        private void OnRoundCompleted()
+        {
+            completedAt = Time.realtimeSinceStartupAsDouble;
+            completed = true;
+        }
 
         private void OnDestroy()
         {
