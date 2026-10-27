@@ -14,15 +14,20 @@ namespace FirehouseDeluxe.Vehicles
 
         private void Update()
         {
-            Keyboard keyboard = Keyboard.current;
-            if (keyboard == null || !hasFocus)
+            if (!hasFocus)
             {
                 vehicle.SetMoveInput(0f);
                 return;
             }
 
-            float input = (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed ? 1f : 0f)
-                - (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed ? 1f : 0f);
+            float input = GamepadControls.ReadHorizontal(Gamepad.current);
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null)
+            {
+                float keyboardInput = (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed ? 1f : 0f)
+                    - (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed ? 1f : 0f);
+                input = GamepadControls.StrongerAxis(keyboardInput, input);
+            }
             vehicle.SetMoveInput(input);
         }
 

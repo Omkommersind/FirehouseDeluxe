@@ -41,12 +41,13 @@ namespace FirehouseDeluxe
 
             bool skipRequested = false;
             if (skipArmed)
-                skipRequested = AnyKeyPressed();
+                skipRequested = AnyKeyPressed() || GamepadControls.AnyButtonPressedThisFrame();
             else
             {
-                // Require a fresh press after releasing keys used on the previous screen or to launch Play Mode.
+                // Require a fresh press after releasing buttons used on the previous screen.
                 Keyboard keyboard = Keyboard.current;
-                skipArmed = keyboard == null || !keyboard.anyKey.isPressed;
+                skipArmed = (keyboard == null || !keyboard.anyKey.isPressed)
+                    && !GamepadControls.AnyButtonHeld();
             }
 
             if (Time.realtimeSinceStartupAsDouble < finishTime && !skipRequested)

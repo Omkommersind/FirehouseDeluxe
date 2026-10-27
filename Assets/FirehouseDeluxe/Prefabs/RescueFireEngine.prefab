@@ -76,7 +76,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4be19f2ce93b41de851c2c98d11fb409, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Vehicles.SideViewVehicle
-  maxSpeed: 12
+  maxSpeed: 18
   acceleration: 50
   deceleration: 40
 --- !u!114 &8477777303081737843
