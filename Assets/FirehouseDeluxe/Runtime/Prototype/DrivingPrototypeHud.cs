@@ -1,6 +1,7 @@
 using FirehouseDeluxe.Vehicles;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 
 namespace FirehouseDeluxe
 {
@@ -9,9 +10,10 @@ namespace FirehouseDeluxe
         [SerializeField] private TopDownVehicle vehicle;
         [SerializeField] private FuelGaugeSettings fuelGauge;
         [SerializeField] private MissionRoute missionRoute;
+        [SerializeField] private Text timer;
+        [SerializeField] private RectTransform timerPanel;
         private Camera hudCamera;
         private PixelPerfectCamera pixelPerfectCamera;
-        private Texture2D timerTexture;
         private long displayedSecond = -1;
 
         public TopDownVehicle Vehicle { get => vehicle; set => vehicle = value; }
@@ -46,17 +48,33 @@ namespace FirehouseDeluxe
 
         private void RefreshTimer()
         {
-            if (missionRoute == null)
+            if (missionRoute == null || timer == null)
                 return;
 
             long second = (long)System.Math.Max(0d, missionRoute.ElapsedSeconds);
-            if (second == displayedSecond && timerTexture != null)
+            if (second == displayedSecond)
                 return;
 
             displayedSecond = second;
-            if (timerTexture != null)
-                Destroy(timerTexture);
-            timerTexture = PixelFont.CreateCenteredText(RunTimeFormatter.Format(second));
+            timer.text = RunTimeFormatter.Format(second);
+            if (timerPanel != null)
+            {
+                timerPanel.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Ceil(timer.preferredWidth));
+                timerPanel.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, timer.fontSize);
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (fuelGauge == null)
+                return;
+            if (timer != null)
+                timer.color = fuelGauge.FillColor;
+            if (timerPanel != null)
+            {
+                Vector2Int margin = fuelGauge.Position;
+                timerPanel.anchoredPosition = new Vector2(-margin.x, -margin.y);
+            }
         }
 
         private void OnGUI()
@@ -76,7 +94,6 @@ namespace FirehouseDeluxe
                 Mathf.Round(viewport.width), Mathf.Round(viewport.height)));
 
             DrawFuelGauge(pixelSize);
-            DrawTimer(pixelSize, Mathf.FloorToInt(viewport.width / pixelSize));
 
             GUI.EndGroup();
             GUI.color = previousColor;
@@ -107,26 +124,6 @@ namespace FirehouseDeluxe
                 GUI.color = fuelGauge.FillColor;
                 GUI.DrawTexture(barRect, Texture2D.whiteTexture);
             }
-        }
-
-        private void DrawTimer(int pixelSize, int viewportWidth)
-        {
-            if (timerTexture == null)
-                return;
-
-            Vector2Int margin = fuelGauge.Position;
-            var rect = new Rect((viewportWidth - margin.x - timerTexture.width) * pixelSize,
-                margin.y * pixelSize, timerTexture.width * pixelSize, timerTexture.height * pixelSize);
-            GUI.color = Color.black;
-            GUI.DrawTexture(rect, Texture2D.whiteTexture);
-            GUI.color = fuelGauge.FillColor;
-            GUI.DrawTexture(rect, timerTexture);
-        }
-
-        private void OnDestroy()
-        {
-            if (timerTexture != null)
-                Destroy(timerTexture);
         }
     }
 }

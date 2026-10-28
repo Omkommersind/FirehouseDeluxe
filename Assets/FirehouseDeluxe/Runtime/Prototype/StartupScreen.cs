@@ -1,16 +1,16 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace FirehouseDeluxe
 {
     public abstract class StartupScreen : MonoBehaviour
     {
-        [SerializeField] private Texture2D logo;
+        [SerializeField] private RawImage logoImage;
 
-        private Camera gameCamera;
-        private PixelPerfectCamera pixelPerfectCamera;
         private double finishTime;
         private bool shown;
         private bool skipArmed;
@@ -19,19 +19,23 @@ namespace FirehouseDeluxe
         protected abstract string NextScenePath { get; }
         protected virtual double DisplayDuration => double.PositiveInfinity;
 
-        protected virtual void Start()
+        protected virtual IEnumerator Start()
         {
-            gameCamera = Camera.main;
-            if (gameCamera != null)
-                pixelPerfectCamera = gameCamera.GetComponent<PixelPerfectCamera>();
-
-            if (logo == null || gameCamera == null || pixelPerfectCamera == null
+            Camera gameCamera = Camera.main;
+            if (logoImage == null || logoImage.texture == null || gameCamera == null
+                || gameCamera.GetComponent<PixelPerfectCamera>() == null
                 || !Application.CanStreamedLevelBeLoaded(NextScenePath)
                 || NextScenePath == gameObject.scene.path)
             {
-                Debug.LogError($"{name}: проверь изображение, общую Pixel Perfect Camera и следующую сцену в Build Profiles.", this);
+                Debug.LogError($"{name}: check the UI image, shared Pixel Perfect Camera and next scene in Build Profiles.", this);
                 enabled = false;
+                yield break;
             }
+
+            // Count display time from the first visible frame, including startup and shader compilation delays.
+            yield return new WaitForEndOfFrame();
+            finishTime = Time.realtimeSinceStartupAsDouble + DisplayDuration;
+            shown = true;
         }
 
         protected virtual void Update()
@@ -68,35 +72,6 @@ namespace FirehouseDeluxe
                 if (key.wasPressedThisFrame)
                     return true;
             return false;
-        }
-
-        protected virtual void OnGUI()
-        {
-            if (Event.current.type != EventType.Repaint || logo == null
-                || gameCamera == null || pixelPerfectCamera == null)
-                return;
-
-            int pixelSize = Mathf.Max(1, pixelPerfectCamera.pixelRatio);
-            Rect viewport = gameCamera.pixelRect;
-            int width = logo.width * pixelSize;
-            int height = logo.height * pixelSize;
-            var logoRect = new Rect(Mathf.Round(viewport.center.x - width * 0.5f),
-                Mathf.Round(Screen.height - viewport.center.y - height * 0.5f), width, height);
-
-            Matrix4x4 previousMatrix = GUI.matrix;
-            Color previousColor = GUI.color;
-            GUI.matrix = Matrix4x4.identity;
-            GUI.color = Color.white;
-            GUI.DrawTexture(logoRect, logo);
-            GUI.color = previousColor;
-            GUI.matrix = previousMatrix;
-
-            if (!shown)
-            {
-                // Startup and shader compilation can delay the first visible frame.
-                finishTime = Time.realtimeSinceStartupAsDouble + DisplayDuration;
-                shown = true;
-            }
         }
     }
 }
