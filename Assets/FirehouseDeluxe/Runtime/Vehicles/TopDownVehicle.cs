@@ -40,8 +40,6 @@ namespace FirehouseDeluxe.Vehicles
         [SerializeField, Min(0f)] private float handbrakeLateralGrip = 2f;
 
         private Rigidbody2D body;
-        private Vector2 spawnPosition;
-        private float spawnRotation;
         private float throttle;
         private float steering;
         private float currentSteerAngle;
@@ -65,8 +63,6 @@ namespace FirehouseDeluxe.Vehicles
             body.gravityScale = 0f;
             body.linearDamping = 0f;
             body.angularDamping = 0f;
-            spawnPosition = body.position;
-            spawnRotation = body.rotation;
             RefillFuel();
         }
 
@@ -134,14 +130,6 @@ namespace FirehouseDeluxe.Vehicles
                 * Mathf.Tan(currentSteerAngle * Mathf.Deg2Rad) * Mathf.Rad2Deg;
             body.angularVelocity = 0f;
             body.MoveRotation(body.rotation - yawRate * dt);
-        }
-
-        public void ResetToSpawn()
-        {
-            Stop();
-            body.position = spawnPosition;
-            body.rotation = spawnRotation;
-            RefillFuel();
         }
 
         public void Stop()

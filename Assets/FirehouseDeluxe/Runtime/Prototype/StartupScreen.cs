@@ -69,7 +69,8 @@ namespace FirehouseDeluxe
 
             // Check keys individually so a new press also works while another key is held.
             foreach (var key in keyboard.allKeys)
-                if (key.wasPressedThisFrame)
+                if (key.wasPressedThisFrame && WindowScaleControls.ScaleDirection(key.keyCode) == 0
+                    && key.keyCode != Key.LeftShift && key.keyCode != Key.RightShift)
                     return true;
             return false;
         }

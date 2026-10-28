@@ -54,9 +54,6 @@ namespace FirehouseDeluxe.Vehicles
             }
 
             vehicle.SetDriveInput(throttle, steering, handbrake);
-
-            if (keyboard != null && keyboard.rKey.wasPressedThisFrame)
-                vehicle.ResetToSpawn();
         }
 
         private float ReadPedal(float value) =>

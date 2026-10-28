@@ -138,17 +138,6 @@ namespace FirehouseDeluxe.Tests
         }
 
         [Test]
-        public void ResetRestoresSpawnAndClearsMomentumAndControls()
-        {
-            Drive(2f, 1f, 1f);
-            vehicle.ResetToSpawn();
-            Drive(0.1f, 0f);
-            Assert.That(body.position.magnitude, Is.LessThan(0.001f));
-            Assert.That(body.linearVelocity.magnitude, Is.LessThan(0.001f));
-            Assert.That(Mathf.Abs(body.rotation), Is.LessThan(0.001f));
-        }
-
-        [Test]
         public void DynamicTruckCannotDriveThroughAStaticWall()
         {
             var wall = new GameObject("Wall");
@@ -168,7 +157,7 @@ namespace FirehouseDeluxe.Tests
         }
 
         [Test]
-        public void KeyboardSupportsWasdArrowsAndReset()
+        public void KeyboardSupportsWasdArrowsAndFocusLoss()
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();
             var input = truck.AddComponent<VehicleKeyboardInput>();
@@ -182,11 +171,9 @@ namespace FirehouseDeluxe.Tests
                 Assert.That(vehicle.ForwardSpeed, Is.GreaterThan(0f));
                 Assert.That(Mathf.DeltaAngle(0f, body.rotation), Is.LessThan(0f));
 
-                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.R));
-                InputSystem.Update();
-                input.SendMessage("Update");
-                Assert.That(body.position.magnitude, Is.LessThan(0.001f));
-                Assert.That(vehicle.SpeedKph, Is.LessThan(0.001f));
+                vehicle.Stop();
+                body.position = Vector2.zero;
+                body.rotation = 0f;
 
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.DownArrow, Key.RightArrow));
                 InputSystem.Update();
