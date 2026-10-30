@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 1540753199174668826}
   - component: {fileID: 3086759634295550062}
   - component: {fileID: 7935319682105785966}
+  - component: {fileID: 2734025519938500618}
   m_Layer: 0
   m_Name: FireEngine
   m_TagString: Untagged
@@ -238,3 +239,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10d723602a22dcf409c10110d2fe0015, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Vehicles.VehicleKeyboardInput
+--- !u!114 &2734025519938500618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7064813523256066737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5b5cac802514bf8ab006023112b0541, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Vehicles.VehicleEngineAudio
+  idleClip: {fileID: 8300000, guid: c44b12055baa89f49b5a5d6013fd8fc7, type: 3}
+  movingClip: {fileID: 8300000, guid: 9b81dd08753202647a9dbe29b137780e, type: 3}
+  volume: 0.125
+  transitionDuration: 0.12

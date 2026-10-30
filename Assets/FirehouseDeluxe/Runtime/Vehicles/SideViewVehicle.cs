@@ -4,7 +4,7 @@ namespace FirehouseDeluxe.Vehicles
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody2D))]
-    public sealed class SideViewVehicle : MonoBehaviour
+    public sealed class SideViewVehicle : MonoBehaviour, IVehicleEngineState
     {
         [SerializeField, Min(0.1f), Tooltip("Maximum horizontal speed in world units per second.")]
         private float maxSpeed = 12f;
@@ -18,6 +18,7 @@ namespace FirehouseDeluxe.Vehicles
 
         public float HorizontalSpeed => body != null ? body.linearVelocity.x : 0f;
         public bool HasMoveInput => !Mathf.Approximately(moveInput, 0f);
+        public bool IsAccelerating => HasMoveInput;
 
         private void Awake()
         {

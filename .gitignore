@@ -114,3 +114,9 @@ InitTestScene*.unity*
 /Recovery/
 /Assets/Scenes/RoadPlaygroundRecovered.unity
 /Assets/Scenes/RoadPlaygroundRecovered.unity.meta
+
+# Cubase generated backups and waveform caches; keep project and audio sources tracked.
+/Assets/FirehouseDeluxe/Audio/Cubase/**/*.bak
+/Assets/FirehouseDeluxe/Audio/Cubase/**/*.bak.meta
+/Assets/FirehouseDeluxe/Audio/Cubase/**/*.peak
+/Assets/FirehouseDeluxe/Audio/Cubase/**/*.peak.meta

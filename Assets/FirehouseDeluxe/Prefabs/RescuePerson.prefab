@@ -32,7 +32,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5096207210297521102}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &7796192033366089445
@@ -184,3 +185,53 @@ MonoBehaviour:
   headSizePixels: 64
   descentSpeed: 16
   fallAcceleration: 35
+--- !u!1 &6397956603651074380
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5096207210297521102}
+  - component: {fileID: 5916818052351206471}
+  m_Layer: 0
+  m_Name: Voice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5096207210297521102
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6397956603651074380}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1963735746339892996}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5916818052351206471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6397956603651074380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5460c44d98a42a69bf07b4642133062, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Rescue.RescuePersonVoice
+  neural1: {fileID: 8300000, guid: 2867829fab33d1348a8cbed827dd0d4d, type: 3}
+  neural2: {fileID: 8300000, guid: 6f12a41f06be18a418ed3088e174ca59, type: 3}
+  fallCry: {fileID: 8300000, guid: 4805b1bb8e1f9a14ab3f4745c43f66fb, type: 3}
+  whatIsIt: {fileID: 8300000, guid: 76411f390b30791409fd413307cff02b, type: 3}
+  volume: 1
+  appearanceChance: 0.2

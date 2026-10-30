@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7627897685285049063}
   - component: {fileID: 8862169544675602108}
   - component: {fileID: 8477777303081737843}
+  - component: {fileID: 5830217889346421720}
   m_Layer: 0
   m_Name: RescueFireEngine
   m_TagString: Untagged
@@ -91,6 +92,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75d6eb827db54261a48c9c2e957c489c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Vehicles.SideViewVehicleKeyboardInput
+--- !u!114 &5830217889346421720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 170088211157558096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5b5cac802514bf8ab006023112b0541, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: FirehouseDeluxe.Runtime::FirehouseDeluxe.Vehicles.VehicleEngineAudio
+  idleClip: {fileID: 8300000, guid: c44b12055baa89f49b5a5d6013fd8fc7, type: 3}
+  movingClip: {fileID: 8300000, guid: 9b81dd08753202647a9dbe29b137780e, type: 3}
+  volume: 0.5
+  transitionDuration: 0.12
 --- !u!1 &948243138608048894
 GameObject:
   m_ObjectHideFlags: 0

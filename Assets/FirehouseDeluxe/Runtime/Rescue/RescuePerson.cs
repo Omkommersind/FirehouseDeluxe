@@ -25,6 +25,7 @@ namespace FirehouseDeluxe.Rescue
         private float despawnY;
 
         public event Action<RescuePerson, bool> Finished;
+        public event Action FallStarted;
 
         private void Awake()
         {
@@ -100,6 +101,7 @@ namespace FirehouseDeluxe.Rescue
             spriteRenderer.sprite = stressSprite;
             fallVelocity = new Vector2(ladder != null ? ladder.HorizontalSpeed : 0f, 0f);
             ladder = null;
+            FallStarted?.Invoke();
         }
 
         private void Finish(bool rescued)

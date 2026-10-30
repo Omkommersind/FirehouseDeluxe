@@ -14,6 +14,7 @@ namespace FirehouseDeluxe
     {
         private const string ScenePath = "Assets/Scenes/WindowRescue.unity";
         private WindowRescueRound round;
+        private MissionRoute route;
         private bool completed;
         private double completedAt;
 
@@ -30,10 +31,11 @@ namespace FirehouseDeluxe
             var runnerObject = new GameObject("Window Rescue Mission");
             SceneManager.MoveGameObjectToScene(runnerObject, route.gameObject.scene);
             var runner = runnerObject.AddComponent<WindowRescueMission>();
-            runner.StartCoroutine(runner.Run(route));
+            runner.route = route;
+            runner.StartCoroutine(runner.Run());
         }
 
-        private IEnumerator Run(MissionRoute route)
+        private IEnumerator Run()
         {
             Scene road = gameObject.scene;
             AsyncOperation loading = BeginLoading(route);
@@ -44,6 +46,7 @@ namespace FirehouseDeluxe
                 yield break;
             }
 
+            route.SetMusicDucked(true);
             Camera gameCamera = Camera.main;
             Vector3 cameraPosition = gameCamera != null ? gameCamera.transform.position : Vector3.zero;
             Quaternion cameraRotation = gameCamera != null ? gameCamera.transform.rotation : Quaternion.identity;
@@ -138,6 +141,8 @@ namespace FirehouseDeluxe
 
         private void OnDestroy()
         {
+            if (route != null)
+                route.SetMusicDucked(false);
             if (round != null)
                 round.Completed -= OnRoundCompleted;
         }

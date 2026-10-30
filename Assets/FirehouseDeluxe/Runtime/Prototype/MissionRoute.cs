@@ -18,6 +18,7 @@ namespace FirehouseDeluxe
         private bool launchPending;
         private bool missionActive;
         private double runStartedAt;
+        private BackgroundMusic music;
 
         public IReadOnlyList<Vector3Int> Route => route;
         public int CompletedCount => currentStep;
@@ -29,6 +30,7 @@ namespace FirehouseDeluxe
         private void Awake()
         {
             runStartedAt = Time.realtimeSinceStartupAsDouble;
+            music = BackgroundMusic.CreateForRun();
             points = GetComponent<Tilemap>();
             var sourceRenderer = GetComponent<TilemapRenderer>();
             sourceRenderer.enabled = false;
@@ -80,6 +82,12 @@ namespace FirehouseDeluxe
 
         internal double GetElapsedTime(double completedAt) => completedAt - runStartedAt;
 
+        internal void SetMusicDucked(bool ducked)
+        {
+            if (music != null)
+                music.SetDucked(ducked);
+        }
+
         internal void ReachCurrentPoint()
         {
             if (missionActive || IsComplete || !isActiveAndEnabled)
@@ -113,6 +121,13 @@ namespace FirehouseDeluxe
         {
             if (marker != null && !IsComplete && !missionActive)
                 marker.gameObject.SetActive(true);
+        }
+
+        private void OnDestroy()
+        {
+            // Loading the ending or restarting destroys the map and ends this run's music.
+            if (music != null)
+                music.EndRun();
         }
     }
 }

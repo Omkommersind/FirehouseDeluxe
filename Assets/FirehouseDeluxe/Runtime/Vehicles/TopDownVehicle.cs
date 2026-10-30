@@ -4,7 +4,7 @@ namespace FirehouseDeluxe.Vehicles
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody2D))]
-    public sealed class TopDownVehicle : MonoBehaviour
+    public sealed class TopDownVehicle : MonoBehaviour, IVehicleEngineState
     {
         [Header("Engine (world units = metres)")]
         [SerializeField, Min(0.1f), Tooltip("Maximum forward speed in metres per second. Multiply by 3.6 for km/h.")]
@@ -52,6 +52,10 @@ namespace FirehouseDeluxe.Vehicles
         public float FuelCapacity => fuelCapacity;
         public float FuelNormalized => fuelCapacity <= 0f ? 0f : fuel / fuelCapacity;
         public bool HasFuel => fuel > 0f;
+        public bool IsAccelerating => HasFuel && !handbrake
+            && !Mathf.Approximately(throttle, 0f) && !IsBraking;
+
+        private bool IsBraking => throttle * ForwardSpeed < 0f;
 
         // Use the physics pose rather than the interpolated render transform.
         private Vector2 Forward => new Vector2(-Mathf.Sin(body.rotation * Mathf.Deg2Rad),
@@ -89,9 +93,7 @@ namespace FirehouseDeluxe.Vehicles
             else if (!Mathf.Approximately(throttle, 0f))
             {
                 // The opposite pedal brakes to a stop first. Reverse starts on a later physics tick.
-                bool braking = (throttle > 0f && forwardSpeed < 0f)
-                    || (throttle < 0f && forwardSpeed > 0f);
-                if (braking)
+                if (IsBraking)
                 {
                     forwardSpeed = Mathf.MoveTowards(forwardSpeed, 0f,
                         brakingDeceleration * Mathf.Abs(throttle) * dt);

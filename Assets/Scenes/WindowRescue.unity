@@ -366,6 +366,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RescueFireEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 5830217889346421720, guid: 28c50873f96dfdf449d0d262a1f992ff, type: 3}
+      propertyPath: volume
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 8980942576736137137, guid: 28c50873f96dfdf449d0d262a1f992ff, type: 3}
       propertyPath: m_LocalPosition.x
       value: 25

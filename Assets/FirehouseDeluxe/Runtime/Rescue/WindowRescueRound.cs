@@ -52,11 +52,16 @@ namespace FirehouseDeluxe.Rescue
         {
             // Never spawn more passengers than still need rescuing.
             int desiredCount = Mathf.Min(2, RescueTarget - SavedCount);
+            RescuePerson speaker = null;
             while (activePeople.Count < desiredCount)
-                SpawnNextPerson(excludedWindow);
+                speaker = SpawnNextPerson(excludedWindow);
+
+            // One greeting for the whole group, including when two passengers appear together.
+            if (speaker != null)
+                speaker.GetComponentInChildren<RescuePersonVoice>()?.PlayAppearance();
         }
 
-        private void SpawnNextPerson(int excludedWindow)
+        private RescuePerson SpawnNextPerson(int excludedWindow)
         {
             var availableWindows = new List<int>(windows.Length);
             for (int index = 0; index < windows.Length; index++)
@@ -69,6 +74,7 @@ namespace FirehouseDeluxe.Rescue
             person.Initialize(fallDespawnY);
             activePeople.Add(person, next);
             person.Finished += OnPersonFinished;
+            return person;
         }
 
         private void OnPersonFinished(RescuePerson person, bool rescued)
