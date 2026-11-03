@@ -13,7 +13,14 @@ namespace FirehouseDeluxe
 
         private PixelPerfectCamera pixelCamera;
 
-        private void Awake() => pixelCamera = GetComponent<PixelPerfectCamera>();
+        private void Awake()
+        {
+            pixelCamera = GetComponent<PixelPerfectCamera>();
+
+            // Override a fullscreen mode remembered from a previous run of the player.
+            if (!Application.isEditor)
+                Screen.fullScreenMode = FullScreenMode.Windowed;
+        }
 
         private void Update()
         {

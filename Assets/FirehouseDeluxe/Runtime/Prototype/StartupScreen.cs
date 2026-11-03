@@ -71,7 +71,7 @@ namespace FirehouseDeluxe
             foreach (var key in keyboard.allKeys)
                 if (key.wasPressedThisFrame && WindowScaleControls.ScaleDirection(key.keyCode) == 0
                     && key.keyCode != Key.LeftShift && key.keyCode != Key.RightShift
-                    && key.keyCode != Key.Tab)
+                    && key.keyCode != Key.Tab && key.keyCode != Key.Escape)
                     return true;
             return false;
         }
