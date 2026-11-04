@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace FirehouseDeluxe
 {
@@ -50,6 +51,10 @@ namespace FirehouseDeluxe
 
         private void Update()
         {
+            Keyboard keyboard = Keyboard.current;
+            if (Application.isFocused && keyboard != null && keyboard.mKey.wasPressedThisFrame)
+                source.mute = !source.mute;
+
             float target = ducked ? minigameVolumeMultiplier : 1f;
             volumeMultiplier = volumeTransitionDuration > 0f
                 ? Mathf.MoveTowards(volumeMultiplier, target,
